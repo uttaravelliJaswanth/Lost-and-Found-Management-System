@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Register{% endblock %}
 
 {% block content %}
@@ -25,9 +26,17 @@
         {% include "partials/_field.html" with field=form.password1 %}
         {% include "partials/_field.html" with field=form.password2 %}
       </div>
+      <div id="password-feedback" hidden>
+        <label for="password-strength">Password strength estimate</label>
+        <meter id="password-strength" min="0" max="4" value="0" style="width:100%"></meter>
+        <p id="password-strength-text" class="muted small" aria-live="polite"></p>
+        <p id="password-match" class="small" aria-live="polite"></p>
+      </div>
       <button type="submit" class="btn btn-primary btn-block">Create account</button>
     </form>
     <p class="auth-foot">Already have an account? <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Log in</a></p>
   </div>
 </div>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'js/auth-feedback.js' %}" defer></script>{% endblock %}

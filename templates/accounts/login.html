@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load socialaccount %}
 {% block title %}Log in{% endblock %}
 
@@ -23,6 +24,7 @@
           {{ form.password }}
           <button type="button" class="password-toggle" data-toggle-password aria-label="Show password">👁</button>
         </div>
+        <p id="caps-lock-warning" class="small" role="status" hidden>Caps Lock is on. Check your password.</p>
         {% for error in form.password.errors %}<small class="error">{{ error }}</small>{% endfor %}
       </div>
       <button type="submit" class="btn btn-primary btn-block">Log in</button>
@@ -39,3 +41,5 @@
   </div>
 </div>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'js/auth-feedback.js' %}" defer></script>{% endblock %}
