@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 
 import shutil
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -99,24 +101,22 @@ WSGI_APPLICATION = "lostfound.wsgi.application"
 # ---------------------------------------------------------------------------
 # Database - SQLite (SRS 2.5 / 6.1), managed via Django ORM + migrations
 # ---------------------------------------------------------------------------
-# On Vercel serverless functions, /var/task is read-only and only /tmp is
-# writable. Copy the pre-migrated/seeded db.sqlite3 into /tmp/db.sqlite3 on
-# cold start so writes (login, registration, items, claims) work seamlessly.
-if IS_VERCEL:
-    _bundled_db = BASE_DIR / "db.sqlite3"
-    _tmp_db = Path("/tmp/db.sqlite3")
-    if _bundled_db.exists() and not _tmp_db.exists():
-        shutil.copy2(_bundled_db, _tmp_db)
-    DB_PATH = _tmp_db
+# Use a shared persistent database in production; SQLite is local only.
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+if DATABASE_URL:
+    DATABASES = {"default": dj_database_url.parse(
+        DATABASE_URL, conn_max_age=0 if IS_VERCEL else 60,
+        ssl_require=IS_VERCEL,
+    )}
+    if IS_VERCEL and DATABASES["default"]["ENGINE"] != "django.db.backends.postgresql":
+        raise ImproperlyConfigured("Vercel requires a PostgreSQL DATABASE_URL.")
+elif IS_VERCEL:
+    raise ImproperlyConfigured("Set DATABASE_URL to a persistent PostgreSQL database before deploying.")
 else:
-    DB_PATH = BASE_DIR / "db.sqlite3"
-
-DATABASES = {
-    "default": {
+    DATABASES = {"default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": DB_PATH,
-    }
-}
+        "NAME": BASE_DIR / "db.sqlite3",
+    }}
 
 # ---------------------------------------------------------------------------
 # Authentication (NFR-07: Django password management)
