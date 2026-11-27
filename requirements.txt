@@ -1,3 +1,5 @@
 Django>=5.1
 Pillow>=10.0
 django-allauth[socialaccount]>=65.4,<66
+dj-database-url>=2.3,<4
+psycopg[binary]>=3.2,<4
